@@ -839,15 +839,19 @@ async function updateGitHub(
     */
 
     if (
-      response.status === 204
-    ) {
+  response.status === 204
+) {
 
-      setStatus(
-        "✓ Synchronisé"
-      );
+  setStatus(
+    "✓ Synchronisé"
+  );
 
-      return true;
-    }
+  setTimeout(() => {
+    setStatus("");
+  }, 3000);
+
+  return true;
+}
 
 
     /*

@@ -73,7 +73,9 @@
     color: #aaa69d;
     background: transparent;
     cursor: pointer;
-    transition: color 0.12s ease, transform 0.12s ease;
+    transition:
+      color 0.12s ease,
+      transform 0.12s ease;
   }
 
   .square.done {
@@ -97,12 +99,18 @@
     border-radius: 6px;
     background: #DFAB00;
     color: #ffffff;
+
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
                  Consolas, "Liberation Mono", "Courier New", monospace;
+
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.2px;
     cursor: pointer;
+
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
   }
 
   .button:hover {
@@ -110,11 +118,13 @@
   }
 
   .status {
-    margin-top: 8px;
+    min-height: 14px;
+    margin-top: 7px;
     text-align: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
+                 Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 9px;
     color: #aaa69d;
-    min-height: 12px;
   }
 </style>
 </head>
@@ -125,29 +135,59 @@
 
   <div class="header">
     <div class="symbol">༄</div>
-    <div class="title">JOURNAL DE LECTURE</div>
+
+    <div class="title">
+      JOURNAL DE LECTURE
+    </div>
   </div>
 
-  <div class="days" id="grid"></div>
+  <div
+    class="days"
+    id="grid">
+  </div>
 
-  <button class="button" id="validate">
+  <button
+    class="button"
+    id="validate">
     ✓ FAIT
   </button>
 
-  <div class="status" id="status"></div>
+  <div
+    class="status"
+    id="status">
+  </div>
 
 </div>
 
+
 <script>
- 
-const GITHUB_OWNER = "Ecaltionne";
-const GITHUB_REPO = "Notion";
-const GITHUB_WORKFLOW = "update-data.yml";
-const GITHUB_BRANCH = "main";
 
-const DATA_URL = "./data.json";
+/* =========================
+   CONFIGURATION GITHUB
+   ========================= */
 
-const TOKEN_KEY = "notion-reading-github-token";
+const GITHUB_OWNER =
+  "Ecaltionne";
+
+const GITHUB_REPO =
+  "Notion";
+
+const GITHUB_WORKFLOW =
+  "update-data.yml";
+
+const GITHUB_BRANCH =
+  "main";
+
+const DATA_URL =
+  "./data.json";
+
+const TOKEN_KEY =
+  "notion-reading-github-token";
+
+
+/* =========================
+   JOURS
+   ========================= */
 
 const DAYS = [
   "L",
@@ -159,44 +199,70 @@ const DAYS = [
   "D"
 ];
 
+
+/* =========================
+   DONNÉES
+   ========================= */
+
 let data = {};
 
 
 /* =========================
-   TOKEN
+   STATUT
+   ========================= */
+
+function setStatus(message) {
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+  status.textContent =
+    message;
+}
+
+
+/* =========================
+   TOKEN GITHUB
    ========================= */
 
 function getToken() {
 
   let token =
-    localStorage.getItem(TOKEN_KEY);
-
-  if (!token) {
-
-    token = prompt(
-      "Entre ton token GitHub.\n\n" +
-      "Il sera conservé uniquement sur cet appareil."
+    localStorage.getItem(
+      TOKEN_KEY
     );
 
-    if (token) {
-
-      token = token.trim();
-
-      localStorage.setItem(
-        TOKEN_KEY,
-        token
-      );
-
-    }
-
+  if (token) {
+    return token;
   }
+
+  token =
+    prompt(
+      "Token GitHub\n\n" +
+      "Colle ici ton token " +
+      "GitHub dédié à ce widget."
+    );
+
+  if (!token) {
+    return null;
+  }
+
+  token =
+    token.trim();
+
+  localStorage.setItem(
+    TOKEN_KEY,
+    token
+  );
 
   return token;
 }
 
 
 /* =========================
-   DATE
+   DATES
    ========================= */
 
 function dateKey(date) {
@@ -246,7 +312,10 @@ function mondayOfWeek(date) {
 }
 
 
-function addDays(date, amount) {
+function addDays(
+  date,
+  amount
+) {
 
   const d =
     new Date(date);
@@ -260,18 +329,22 @@ function addDays(date, amount) {
 
 
 /* =========================
-   GITHUB
+   CHARGEMENT DATA.JSON
    ========================= */
 
 async function loadData() {
 
-  setStatus("Chargement…");
+  setStatus(
+    "Chargement…"
+  );
 
   try {
 
     const response =
       await fetch(
-        DATA_URL + "?t=" + Date.now(),
+        DATA_URL +
+        "?v=" +
+        Date.now(),
         {
           cache: "no-store"
         }
@@ -279,7 +352,8 @@ async function loadData() {
 
     if (!response.ok) {
       throw new Error(
-        "Impossible de charger data.json"
+        "data.json : HTTP " +
+        response.status
       );
     }
 
@@ -299,22 +373,23 @@ async function loadData() {
     render();
 
     setStatus(
-      "Erreur de chargement"
+      "Impossible de charger les données"
     );
   }
 }
 
 
-async function updateGitHub(date, value) {
+/* =========================
+   ENVOI À GITHUB ACTIONS
+   ========================= */
 
-  alert("1 — updateGitHub appelé");
+async function updateGitHub(
+  date,
+  value
+) {
 
-  const token = getToken();
-
-  alert(
-    "2 — Token présent : " +
-    Boolean(token)
-  );
+  const token =
+    getToken();
 
   if (!token) {
 
@@ -329,18 +404,16 @@ async function updateGitHub(date, value) {
     "Synchronisation…"
   );
 
+  const url =
+    "https://api.github.com/repos/" +
+    GITHUB_OWNER +
+    "/" +
+    GITHUB_REPO +
+    "/actions/workflows/" +
+    GITHUB_WORKFLOW +
+    "/dispatches";
+
   try {
-
-    const url =
-      `https://api.github.com/repos/` +
-      `${GITHUB_OWNER}/${GITHUB_REPO}` +
-      `/actions/workflows/` +
-      `${GITHUB_WORKFLOW}/dispatches`;
-
-    alert(
-      "3 — Appel GitHub\n\n" +
-      url
-    );
 
     const response =
       await fetch(
@@ -353,7 +426,7 @@ async function updateGitHub(date, value) {
               "application/vnd.github+json",
 
             "Authorization":
-              `Bearer ${token}`,
+              "Bearer " + token,
 
             "X-GitHub-Api-Version":
               "2022-11-28",
@@ -362,164 +435,87 @@ async function updateGitHub(date, value) {
               "application/json"
           },
 
-          body: JSON.stringify({
+          body:
+            JSON.stringify({
+              ref:
+                GITHUB_BRANCH,
 
-            ref:
-              GITHUB_BRANCH,
+              inputs: {
+                date:
+                  date,
 
-            inputs: {
-
-              date:
-                date,
-
-              value:
-                String(value)
-
-            }
-
-          })
+                value:
+                  String(value)
+              }
+            })
         }
       );
 
-    alert(
-      "4 — Réponse GitHub : " +
-      response.status
-    );
 
-    if (!response.ok) {
+    /*
+      GitHub renvoie normalement
+      HTTP 204 si le workflow
+      a été correctement déclenché.
+    */
 
-      const text =
-        await response.text();
+    if (response.status === 204) {
 
-      alert(
-        "ERREUR GITHUB\n\n" +
-        "HTTP " +
-        response.status +
-        "\n\n" +
-        text
+      setStatus(
+        "✓ Synchronisé"
       );
 
-      if (
-        response.status === 401 ||
-        response.status === 403
-      ) {
+      return true;
+    }
 
-        localStorage.removeItem(
-          TOKEN_KEY
-        );
 
-      }
+    /*
+      Erreur d'authentification
+    */
+
+    if (
+      response.status === 401 ||
+      response.status === 403
+    ) {
+
+      localStorage.removeItem(
+        TOKEN_KEY
+      );
+
+      setStatus(
+        "Token GitHub invalide"
+      );
 
       return false;
     }
 
-    setStatus(
-      "✓ Synchronisé"
+
+    /*
+      Autre erreur
+    */
+
+    const errorText =
+      await response.text();
+
+    console.error(
+      "GitHub:",
+      response.status,
+      errorText
     );
 
-    return true;
-
-  } catch (error) {
-
-    alert(
-      "ERREUR JAVASCRIPT\n\n" +
-      error.message
-    );
-
-    console.error(error);
-
     setStatus(
-      "Erreur de synchronisation"
+      "Erreur GitHub (" +
+      response.status +
+      ")"
     );
 
     return false;
-  }
-}
-
-  setStatus(
-    "Synchronisation…"
-  );
-
-  try {
-
-    const url =
-      `https://api.github.com/repos/` +
-      `${GITHUB_OWNER}/${GITHUB_REPO}` +
-      `/actions/workflows/` +
-      `${GITHUB_WORKFLOW}/dispatches`;
-
-    const response =
-      await fetch(
-        url,
-        {
-          method: "POST",
-
-          headers: {
-            "Accept":
-              "application/vnd.github+json",
-
-            "Authorization":
-              `Bearer ${token}`,
-
-            "X-GitHub-Api-Version":
-              "2022-11-28",
-
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-
-            ref:
-              GITHUB_BRANCH,
-
-            inputs: {
-
-              date:
-                date,
-
-              value:
-                String(value)
-
-            }
-
-          })
-        }
-      );
-
-    if (!response.ok) {
-
-      if (
-        response.status === 401 ||
-        response.status === 403
-      ) {
-
-        localStorage.removeItem(
-          TOKEN_KEY
-        );
-
-        throw new Error(
-          "Token GitHub invalide ou permissions insuffisantes."
-        );
-      }
-
-      throw new Error(
-        `GitHub HTTP ${response.status}`
-      );
-    }
-
-    setStatus(
-      "✓ Synchronisé"
-    );
-
-    return true;
 
   } catch (error) {
 
     console.error(error);
 
     setStatus(
-      "Erreur de synchronisation"
+      "Erreur de connexion"
     );
 
     return false;
@@ -540,24 +536,31 @@ function render() {
 
   grid.innerHTML = "";
 
-  DAYS.forEach(day => {
 
-    const label =
-      document.createElement(
-        "div"
+  /*
+    Jours de la semaine
+  */
+
+  DAYS.forEach(
+    day => {
+
+      const label =
+        document.createElement(
+          "div"
+        );
+
+      label.className =
+        "day-label";
+
+      label.textContent =
+        day;
+
+      grid.appendChild(
+        label
       );
 
-    label.className =
-      "day-label";
-
-    label.textContent =
-      day;
-
-    grid.appendChild(
-      label
-    );
-
-  });
+    }
+  );
 
 
   const today =
@@ -569,6 +572,10 @@ function render() {
   const currentMonday =
     mondayOfWeek(today);
 
+
+  /*
+    10 semaines
+  */
 
   for (
     let week = 9;
@@ -582,6 +589,10 @@ function render() {
         -week * 7
       );
 
+
+    /*
+      7 jours
+    */
 
     for (
       let day = 0;
@@ -598,6 +609,7 @@ function render() {
       const key =
         dateKey(date);
 
+
       const square =
         document.createElement(
           "div"
@@ -610,6 +622,10 @@ function render() {
         "■";
 
 
+      /*
+        Lecture de data.json
+      */
+
       if (data[key]) {
 
         square.classList.add(
@@ -619,7 +635,13 @@ function render() {
       }
 
 
-      if (key === todayKey) {
+      /*
+        Aujourd'hui
+      */
+
+      if (
+        key === todayKey
+      ) {
 
         square.classList.add(
           "today"
@@ -628,16 +650,25 @@ function render() {
       }
 
 
+      /*
+        Clic sur un carré
+      */
+
       square.addEventListener(
         "click",
         async () => {
 
+          const oldValue =
+            Boolean(
+              data[key]
+            );
+
           const newValue =
-            !Boolean(data[key]);
+            !oldValue;
 
 
           /*
-            Mise à jour visuelle
+            Modification visuelle
             immédiate
           */
 
@@ -658,15 +689,16 @@ function render() {
             );
 
 
+          /*
+            Si GitHub refuse,
+            on revient à l'état
+            précédent.
+          */
+
           if (!success) {
 
-            /*
-              On annule la modification
-              si GitHub refuse.
-            */
-
             data[key] =
-              !newValue;
+              oldValue;
 
             render();
 
@@ -681,17 +713,15 @@ function render() {
       );
 
     }
-
   }
 
 
   updateButton();
-
 }
 
 
 /* =========================
-   BOUTON
+   BOUTON FAIT
    ========================= */
 
 function updateButton() {
@@ -732,11 +762,33 @@ document
         );
 
 
+      /*
+        Si aujourd'hui est
+        déjà validé, le bouton
+        ne l'annule pas.
+      */
+
+      if (
+        data[todayKey]
+      ) {
+
+        return;
+      }
+
+
+      /*
+        Modification immédiate
+      */
+
       data[todayKey] =
         true;
 
       render();
 
+
+      /*
+        Synchronisation GitHub
+      */
 
       const success =
         await updateGitHub(
@@ -744,6 +796,10 @@ document
           true
         );
 
+
+      /*
+        Annulation si échec
+      */
 
       if (!success) {
 

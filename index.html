@@ -21,16 +21,16 @@
     width: 100%;
     max-width: 420px;
     margin: auto;
-    padding: 14px 16px 16px;
-    background: #fffdf7;
-    border-radius: 14px;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid #d3d3d1;
+    border-radius: 10px;
   }
 
   .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
   .title {
@@ -38,15 +38,24 @@
     font-weight: 600;
   }
 
-  .streak {
-    font-size: 12px;
-    color: #9a7b18;
+  .symbol {
+    color: #C29343;
+    font-size: 17px;
+    margin-right: 7px;
+    line-height: 1;
   }
+
+  /*
+    Grille :
+    7 colonnes de largeur identique.
+    Cela supprime le grand espace entre L et M.
+  */
 
   .days {
     display: grid;
-    grid-template-columns: 72px repeat(7, 1fr);
-    gap: 5px;
+    grid-template-columns: repeat(7, 1fr);
+    column-gap: 7px;
+    row-gap: 5px;
     align-items: center;
   }
 
@@ -57,51 +66,73 @@
     font-weight: 600;
   }
 
-  .week-label {
-    font-size: 9px;
-    color: #aaa69d;
-    white-space: nowrap;
-  }
+  /*
+    Le carré minimaliste
+  */
 
   .square {
     width: 11px;
     height: 11px;
-    border-radius: 3px;
-    background: #e8e8e6;
     margin: auto;
-    transition: all 0.15s ease;
+    font-size: 12px;
+    line-height: 11px;
+    text-align: center;
+    color: #B7B7B5;
+    background: transparent;
   }
+
+  /*
+    Habitude réalisée :
+    jaune Notion #C29343
+  */
 
   .square.done {
-    background: #f4c842;
+    color: #C29343;
   }
 
+  /*
+    Jour actuel
+  */
+
   .square.today {
-    outline: 1.5px solid #d3aa20;
+    outline: 1px solid #C29343;
     outline-offset: 2px;
   }
 
+  /*
+    Bouton
+  */
+
   .button {
     width: 100%;
-    margin-top: 15px;
-    border: 0;
-    border-radius: 8px;
+    margin-top: 16px;
     padding: 8px 12px;
-    background: #f4c842;
-    color: #3b3217;
+
+    border: none;
+    border-radius: 6px;
+
+    background: #C29343;
+    color: #ffffff;
+
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
+                 Consolas, "Liberation Mono", "Courier New", monospace;
+
     font-size: 12px;
     font-weight: 600;
+    letter-spacing: 0.2px;
+
     cursor: pointer;
-    transition: 0.15s ease;
+
+    transition: all 0.15s ease;
   }
 
   .button:hover {
-    background: #e9ba2d;
+    background: #AE823A;
   }
 
   .button.done {
-    background: #f8edc2;
-    color: #9a7b18;
+    background: #E8D7B7;
+    color: #7D5E29;
   }
 </style>
 </head>
@@ -111,145 +142,289 @@
 <div class="tracker">
 
   <div class="header">
-    <div class="title">🌼 Mon habitude</div>
-    <div class="streak" id="streak"></div>
+    <div class="symbol">༄</div>
+    <div class="title">Journal de lecture</div>
   </div>
 
   <div class="days" id="grid"></div>
 
   <button class="button" id="validate">
-    ✓ Valider aujourd'hui
+    ✓ FAIT
   </button>
 
 </div>
 
+
 <script>
+
   const STORAGE_KEY = "notion-habit-tracker";
+
   const DAYS = ["L", "M", "M", "J", "V", "S", "D"];
 
   let data = JSON.parse(
     localStorage.getItem(STORAGE_KEY) || "{}"
   );
 
+
+  /* =========================
+     OUTILS DE DATE
+     ========================= */
+
   function dateKey(date) {
+
     const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
+
+    const m = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const d = String(
+      date.getDate()
+    ).padStart(2, "0");
+
     return `${y}-${m}-${d}`;
   }
 
+
   function mondayOfWeek(date) {
+
     const d = new Date(date);
+
     const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
 
-  function addDays(date, amount) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + amount);
-    return d;
-  }
+    const diff =
+      day === 0
+        ? -6
+        : 1 - day;
 
-  function render() {
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
-
-    DAYS.forEach(day => {
-      const label = document.createElement("div");
-      label.className = "day-label";
-      label.textContent = day;
-      grid.appendChild(label);
-    });
-
-    const today = new Date();
-    const currentMonday = mondayOfWeek(today);
-
-    // 10 semaines, la semaine actuelle étant la dernière
-    for (let week = 9; week >= 0; week--) {
-
-      const monday = addDays(currentMonday, -week * 7);
-
-      const weekLabel = document.createElement("div");
-      weekLabel.className = "week-label";
-
-      const start = monday.getDate();
-      const end = addDays(monday, 6).getDate();
-
-      weekLabel.textContent = `${start}–${end}`;
-      grid.appendChild(weekLabel);
-
-      for (let day = 0; day < 7; day++) {
-
-        const date = addDays(monday, day);
-        const key = dateKey(date);
-
-        const square = document.createElement("div");
-        square.className = "square";
-
-        if (data[key]) {
-          square.classList.add("done");
-        }
-
-        if (key === dateKey(today)) {
-          square.classList.add("today");
-        }
-
-        grid.appendChild(square);
-      }
-    }
-
-    updateButton();
-    updateStreak();
-  }
-
-  function updateButton() {
-    const button = document.getElementById("validate");
-    const todayKey = dateKey(new Date());
-
-    if (data[todayKey]) {
-      button.textContent = "✓ Habitude validée aujourd'hui";
-      button.classList.add("done");
-    } else {
-      button.textContent = "✓ Valider aujourd'hui";
-      button.classList.remove("done");
-    }
-  }
-
-  function updateStreak() {
-    let streak = 0;
-    let date = new Date();
-
-    while (data[dateKey(date)]) {
-      streak++;
-      date = addDays(date, -1);
-    }
-
-    const element = document.getElementById("streak");
-
-    if (streak > 0) {
-      element.textContent = `🔥 ${streak} jour${streak > 1 ? "s" : ""}`;
-    } else {
-      element.textContent = "";
-    }
-  }
-
-  document.getElementById("validate").addEventListener("click", () => {
-    const todayKey = dateKey(new Date());
-
-    data[todayKey] = true;
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(data)
+    d.setDate(
+      d.getDate() + diff
     );
 
-    render();
-  });
+    d.setHours(0, 0, 0, 0);
+
+    return d;
+  }
+
+
+  function addDays(date, amount) {
+
+    const d = new Date(date);
+
+    d.setDate(
+      d.getDate() + amount
+    );
+
+    return d;
+  }
+
+
+  /* =========================
+     AFFICHAGE DU TRACKER
+     ========================= */
+
+  function render() {
+
+    const grid =
+      document.getElementById("grid");
+
+    grid.innerHTML = "";
+
+
+    /* Jours de la semaine */
+
+    DAYS.forEach(day => {
+
+      const label =
+        document.createElement("div");
+
+      label.className =
+        "day-label";
+
+      label.textContent = day;
+
+      grid.appendChild(label);
+
+    });
+
+
+    const today =
+      new Date();
+
+    const currentMonday =
+      mondayOfWeek(today);
+
+
+    /*
+      Affiche les 10 dernières semaines.
+      La semaine actuelle est la dernière.
+    */
+
+    for (
+      let week = 9;
+      week >= 0;
+      week--
+    ) {
+
+      const monday =
+        addDays(
+          currentMonday,
+          -week * 7
+        );
+
+
+      /*
+        On n'affiche plus les dates
+        ni aucun chiffre à droite.
+        On garde uniquement les 7 carrés.
+      */
+
+      for (
+        let day = 0;
+        day < 7;
+        day++
+      ) {
+
+        const date =
+          addDays(
+            monday,
+            day
+          );
+
+        const key =
+          dateKey(date);
+
+
+        const square =
+          document.createElement("div");
+
+        square.className =
+          "square";
+
+        square.textContent =
+          "■";
+
+
+        /*
+          Jour réalisé
+        */
+
+        if (data[key]) {
+
+          square.classList.add(
+            "done"
+          );
+
+        }
+
+
+        /*
+          Jour actuel
+        */
+
+        if (
+          key === dateKey(today)
+        ) {
+
+          square.classList.add(
+            "today"
+          );
+
+        }
+
+
+        grid.appendChild(
+          square
+        );
+
+      }
+
+    }
+
+
+    updateButton();
+
+  }
+
+
+  /* =========================
+     BOUTON
+     ========================= */
+
+  function updateButton() {
+
+    const button =
+      document.getElementById(
+        "validate"
+      );
+
+    const todayKey =
+      dateKey(
+        new Date()
+      );
+
+
+    if (data[todayKey]) {
+
+      button.textContent =
+        "✓ FAIT";
+
+      button.classList.add(
+        "done"
+      );
+
+    } else {
+
+      button.textContent =
+        "✓ FAIT";
+
+      button.classList.remove(
+        "done"
+      );
+
+    }
+
+  }
+
+
+  /* =========================
+     VALIDATION DU JOUR
+     ========================= */
+
+  document
+    .getElementById("validate")
+    .addEventListener(
+      "click",
+      () => {
+
+        const todayKey =
+          dateKey(
+            new Date()
+          );
+
+
+        data[todayKey] =
+          true;
+
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(data)
+        );
+
+
+        render();
+
+      }
+    );
+
+
+  /* =========================
+     INITIALISATION
+     ========================= */
 
   render();
+
 </script>
 
 </body>

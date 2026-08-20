@@ -305,15 +305,16 @@ async function loadData() {
 }
 
 
-async function updateGitHub(
-  date,
-  value
-) {
+async function updateGitHub(date, value) {
 
- alert("updateGitHub est appelé");
- 
-  const token =
-    getToken();
+  alert("1 — updateGitHub appelé");
+
+  const token = getToken();
+
+  alert(
+    "2 — Token présent : " +
+    Boolean(token)
+  );
 
   if (!token) {
 
@@ -323,6 +324,117 @@ async function updateGitHub(
 
     return false;
   }
+
+  setStatus(
+    "Synchronisation…"
+  );
+
+  try {
+
+    const url =
+      `https://api.github.com/repos/` +
+      `${GITHUB_OWNER}/${GITHUB_REPO}` +
+      `/actions/workflows/` +
+      `${GITHUB_WORKFLOW}/dispatches`;
+
+    alert(
+      "3 — Appel GitHub\n\n" +
+      url
+    );
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "POST",
+
+          headers: {
+            "Accept":
+              "application/vnd.github+json",
+
+            "Authorization":
+              `Bearer ${token}`,
+
+            "X-GitHub-Api-Version":
+              "2022-11-28",
+
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            ref:
+              GITHUB_BRANCH,
+
+            inputs: {
+
+              date:
+                date,
+
+              value:
+                String(value)
+
+            }
+
+          })
+        }
+      );
+
+    alert(
+      "4 — Réponse GitHub : " +
+      response.status
+    );
+
+    if (!response.ok) {
+
+      const text =
+        await response.text();
+
+      alert(
+        "ERREUR GITHUB\n\n" +
+        "HTTP " +
+        response.status +
+        "\n\n" +
+        text
+      );
+
+      if (
+        response.status === 401 ||
+        response.status === 403
+      ) {
+
+        localStorage.removeItem(
+          TOKEN_KEY
+        );
+
+      }
+
+      return false;
+    }
+
+    setStatus(
+      "✓ Synchronisé"
+    );
+
+    return true;
+
+  } catch (error) {
+
+    alert(
+      "ERREUR JAVASCRIPT\n\n" +
+      error.message
+    );
+
+    console.error(error);
+
+    setStatus(
+      "Erreur de synchronisation"
+    );
+
+    return false;
+  }
+}
 
   setStatus(
     "Synchronisation…"

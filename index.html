@@ -3,1207 +3,251 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Journal de lecture</title>
 <style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background: transparent;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                 Helvetica, Arial, sans-serif;
-    color: #37352f;
-  }
-
-  .tracker {
-    width: 100%;
-    max-width: 420px;
-    margin: auto;
-    padding: 16px;
-    padding-bottom: 12px;
-    background: transparent;
-    border: 1px solid #E3E2E0;
-    border-radius: 10px;
-  }
-
-  /* =========================
-     EN-TÊTE
-     ========================= */
-
-  .header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-
-  .symbol {
-    color: #37352f;
-    font-size: 17px;
-    margin-right: 7px;
-    line-height: 1;
-  }
-
-  .title {
-    flex: 1;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-  }
-
-  /* =========================
-     BOUTON CONFIGURATION
-     ========================= */
-
-  .settings {
-    width: 24px;
-    height: 24px;
-
-    padding: 0;
-
-    border: none;
-    background: transparent;
-
-    color: #aaa69d;
-
-    font-size: 15px;
-
-    cursor: pointer;
-
-    border-radius: 10px;
-  }
-
-  .settings:hover {
-    background: #eeeae2;
-    color: #37352f;
-  }
-
-  /* =========================
-     CONFIGURATION TOKEN
-     ========================= */
-
-  .config {
-    display: none;
-
-    margin-bottom: 14px;
-    padding: 10px;
-
-    border: 1px solid #aaa69d;
-    border-radius: 7px;
-
-    background: rgba(255,255,255,0.25);
-  }
-
-  .config.visible {
-    display: block;
-  }
-
-  .config-title {
-    margin-bottom: 7px;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  .token-input {
-    width: 100%;
-
-    padding: 7px 8px;
-
-    border: 1px solid #aaa69d;
-    border-radius: 5px;
-
-    background: transparent;
-    color: #37352f;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 10px;
-
-    outline: none;
-  }
-
-  .token-input:focus {
-    border-color: #DFAB00;
-  }
-
-  .config-buttons {
-    display: flex;
-    gap: 6px;
-
-    margin-top: 7px;
-  }
-
-  .config-button {
-    flex: 1;
-
-    padding: 6px;
-
-    border: none;
-    border-radius: 5px;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 9px;
-    font-weight: 600;
-
-    cursor: pointer;
-  }
-
-  .save-token {
-    background: #DFAB00;
-    color: white;
-  }
-
-  .save-token:hover {
-    background: #C29343;
-  }
-
-  .remove-token {
-    background: #eeeae2;
-    color: #37352f;
-  }
-
-  /* =========================
-     GRILLE
-     ========================= */
-
-  .days {
-    display: grid;
-
-    grid-template-columns: repeat(7, 1fr);
-
-    column-gap: 7px;
-    row-gap: 5px;
-
-    align-items: center;
-  }
-
-  .day-label {
-    text-align: center;
-
-    font-size: 9px;
-    color: #aaa69d;
-    font-weight: 600;
-  }
-
-  /* =========================
-     CARRÉS
-     ========================= */
-
-  .square {
-    width: 11px;
-    height: 11px;
-
-    margin: auto;
-
-    font-size: 12px;
-    line-height: 11px;
-
-    text-align: center;
-
-    color: #E3E2E0;
-
-    background: transparent;
-
-    cursor: pointer;
-
-    transition:
-      color 0.12s ease,
-      transform 0.12s ease;
-  }
-
-  .square.done {
-    color: #DFAB00;
-  }
-
-  .square:hover {
-    transform: scale(1.2);
-  }
-
-  .square.today {
-    outline: 1px solid #DFAB00;
-    outline-offset: 2px;
-  }
-
-  /* =========================
-     BOUTON FAIT
-     ========================= */
-
-  .button {
-    width: 100%;
-
-    margin-top: 16px;
-
-    padding: 8px 12px;
-
-    border: none;
-    border-radius: 6px;
-
-    background: #DFAB00;
-    color: #ffffff;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 12px;
-    font-weight: 600;
-
-    letter-spacing: 0.2px;
-
-    cursor: pointer;
-  }
-
-  .button:hover {
-    background: #C29343;
-  }
-
-  /* =========================
-     STATUT
-     ========================= */
-
-  .status {
-    height: 12px;
-    margin-top: 4px;
-
-    text-align: center;
-
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-                 Consolas, "Liberation Mono", "Courier New", monospace;
-
-    font-size: 9px;
-
-    color: #aaa69d;
-  }
-
+*{box-sizing:border-box}
+body{margin:0;background:transparent;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#37352f}
+.title,.config-title,.token-input,.config-button,.button,.status{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+.tracker{width:100%;max-width:420px;margin:auto;padding:16px 16px 12px;background:transparent;border:1px solid #E3E2E0;border-radius:10px}
+.header{display:flex;align-items:center;margin-bottom:14px}
+.symbol{font-size:17px;margin-right:7px;line-height:1}
+.title{flex:1;font-size:14px;font-weight:600;letter-spacing:.2px}
+.settings{width:24px;height:24px;padding:0;border:none;background:transparent;color:#aaa69d;font-size:15px;cursor:pointer;border-radius:10px}
+.settings:hover{background:#eeeae2;color:#37352f}
+.config{display:none;margin-bottom:14px;padding:10px;border:1px solid #aaa69d;border-radius:7px;background:rgba(255,255,255,.25)}
+.config.visible{display:block}
+.config-title{margin-bottom:7px;font-size:10px;font-weight:600}
+.token-input{width:100%;padding:7px 8px;border:1px solid #aaa69d;border-radius:5px;background:transparent;color:#37352f;font-size:10px;outline:none}
+.token-input:focus{border-color:#DFAB00}
+.config-buttons{display:flex;gap:6px;margin-top:7px}
+.config-button{flex:1;padding:6px;border:none;border-radius:5px;font-size:9px;font-weight:600;cursor:pointer}
+.save-token{background:#DFAB00;color:#fff}
+.save-token:hover{background:#C29343}
+.remove-token{background:#eeeae2;color:#37352f}
+.days{display:grid;grid-template-columns:repeat(7,1fr);column-gap:7px;row-gap:5px;align-items:center}
+.day-label{text-align:center;font-size:9px;color:#aaa69d;font-weight:600}
+.square{width:11px;height:11px;margin:auto;font-size:12px;line-height:11px;text-align:center;color:#E3E2E0;cursor:pointer;transition:color .12s ease,transform .12s ease}
+.square.done{color:#DFAB00}
+.square:hover{transform:scale(1.2)}
+.square.today{outline:1px solid #DFAB00;outline-offset:2px}
+.button{width:100%;margin-top:16px;padding:8px 12px;border:none;border-radius:6px;background:#DFAB00;color:#fff;font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer}
+.button:hover{background:#C29343}
+.button.done{opacity:.55;cursor:default}
+.status{height:12px;margin-top:4px;text-align:center;font-size:9px;color:#aaa69d}
 </style>
 </head>
-
-
 <body>
-
 <div class="tracker">
-
-
-  <!-- =========================
-       EN-TÊTE
-       ========================= -->
-
   <div class="header">
-
-    <div class="symbol">
-      ༄
-    </div>
-
-    <div class="title">
-      JOURNAL DE LECTURE
-    </div>
-
-    <button
-      class="settings"
-      id="settings"
-      title="Configuration">
-      ⚙
-    </button>
-
+    <div class="symbol">༄</div>
+    <div class="title">JOURNAL DE LECTURE</div>
+    <button class="settings" id="settings" title="Configuration">⚙</button>
   </div>
-
-
-  <!-- =========================
-       CONFIGURATION TOKEN
-       ========================= -->
-
-  <div
-    class="config"
-    id="config">
-
-    <div class="config-title">
-      TOKEN GITHUB
-    </div>
-
-    <input
-      class="token-input"
-      id="tokenInput"
-      type="password"
-      autocomplete="off"
-      placeholder="Colle ton token GitHub ici">
-
+  <div class="config" id="config">
+    <div class="config-title">TOKEN GITHUB</div>
+    <input class="token-input" id="tokenInput" type="password" autocomplete="off" placeholder="Colle ton token GitHub ici">
     <div class="config-buttons">
-
-      <button
-        class="config-button save-token"
-        id="saveToken">
-        ENREGISTRER
-      </button>
-
-      <button
-        class="config-button remove-token"
-        id="removeToken">
-        SUPPRIMER
-      </button>
-
+      <button class="config-button save-token" id="saveToken">ENREGISTRER</button>
+      <button class="config-button remove-token" id="removeToken">SUPPRIMER</button>
     </div>
-
   </div>
-
-
-  <!-- =========================
-       GRILLE
-       ========================= -->
-
-  <div
-    class="days"
-    id="grid">
-  </div>
-
-
-  <!-- =========================
-       BOUTON
-       ========================= -->
-
-  <button
-    class="button"
-    id="validate">
-
-    ✓ FAIT
-
-  </button>
-
-
-  <!-- =========================
-       STATUT
-       ========================= -->
-
-  <div
-    class="status"
-    id="status">
-  </div>
-
+  <div class="days" id="grid"></div>
+  <button class="button" id="validate">✓ FAIT</button>
+  <div class="status" id="status"></div>
 </div>
-
-
 <script>
+const OWNER = "Ecaltionne", REPO = "Notion", BRANCH = "main", PATH = "data.json";
+const API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + PATH;
+const TOKEN_KEY = "journal-lecture:token";
+const CACHE_KEY = "journal-lecture:days";
+const PENDING_KEY = "journal-lecture:pending";
+const DAYS = ["L","M","M","J","V","S","D"];
+const $ = id => document.getElementById(id);
+let data = {}, pending = {}, queue = Promise.resolve(), timer;
 
-/* =========================
-   CONFIGURATION GITHUB
-   ========================= */
-
-const GITHUB_OWNER =
-  "Ecaltionne";
-
-const GITHUB_REPO =
-  "Notion";
-
-const GITHUB_WORKFLOW =
-  "update-data.yml";
-
-const GITHUB_BRANCH =
-  "main";
-
-const DATA_URL =
-  "./data.json";
-
-const TOKEN_KEY =
-  "notion-reading-github-token";
-
-
-/* =========================
-   JOURS
-   ========================= */
-
-const DAYS = [
-  "L",
-  "M",
-  "M",
-  "J",
-  "V",
-  "S",
-  "D"
-];
-
-
-let data = {};
-
-
-/* =========================
-   STATUT
-   ========================= */
-
-function setStatus(message) {
-
-  document
-    .getElementById("status")
-    .textContent =
-      message;
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function fetchStore(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function dropStore(k) { try { localStorage.removeItem(k); } catch (e) {} }
+function token() { return fetchStore(TOKEN_KEY); }
+function setStatus(msg, ms) {
+  $("status").textContent = msg;
+  clearTimeout(timer);
+  if (ms) timer = setTimeout(() => { $("status").textContent = ""; }, ms);
+}
+function openConfig() { $("config").classList.add("visible"); }
+function dateKey(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function monday(d) {
+  const x = new Date(d), w = x.getDay();
+  x.setDate(x.getDate() + (w === 0 ? -6 : 1 - w));
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function clean(src) {
+  const keys = Array.isArray(src) ? src : Object.keys(src || {}).filter(k => src[k]);
+  const out = {};
+  keys.forEach(k => { if (/^\d{4}-\d{2}-\d{2}$/.test(k)) out[k] = true; });
+  return out;
+}
+function withPending(obj) {
+  const out = Object.assign({}, obj);
+  Object.keys(pending).forEach(k => { if (pending[k]) out[k] = true; else delete out[k]; });
+  return out;
+}
+function persist() {
+  store(CACHE_KEY, JSON.stringify(data));
+  store(PENDING_KEY, JSON.stringify(pending));
+}
+function b64enc(s) { return btoa(unescape(encodeURIComponent(s))); }
+function b64dec(s) { return decodeURIComponent(escape(atob(s.replace(/\n/g, "")))); }
+function headers() {
+  const h = { "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+  if (token()) h["Authorization"] = "Bearer " + token();
+  return h;
 }
 
-
-/* =========================
-   TOKEN
-   ========================= */
-
-function getToken() {
-
-  return localStorage.getItem(
-    TOKEN_KEY
-  );
+async function fetchRemote() {
+  const r = await fetch(API + "?ref=" + BRANCH + "&t=" + Date.now(), { headers: headers(), cache: "no-store" });
+  if (r.status === 401 && token()) {
+    dropStore(TOKEN_KEY);
+    setStatus("Token invalide");
+    openConfig();
+    return fetchRemote();
+  }
+  if (r.status === 404) return { obj: {}, sha: null };
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  let obj = {};
+  try { obj = JSON.parse(b64dec(j.content)); } catch (e) {}
+  return { obj: clean(obj), sha: j.sha };
 }
 
-
-/* =========================
-   DATES
-   ========================= */
-
-function dateKey(date) {
-
-  const y =
-    date.getFullYear();
-
-  const m =
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
-
-  const d =
-    String(
-      date.getDate()
-    ).padStart(2, "0");
-
-  return `${y}-${m}-${d}`;
+async function sync() {
+  try {
+    const remote = await fetchRemote();
+    data = withPending(remote.obj);
+    persist();
+    render();
+  } catch (e) {
+    setStatus("Hors ligne : affichage de la dernière copie");
+  }
 }
 
-
-function mondayOfWeek(date) {
-
-  const d =
-    new Date(date);
-
-  const day =
-    d.getDay();
-
-  const diff =
-    day === 0
-      ? -6
-      : 1 - day;
-
-  d.setDate(
-    d.getDate() + diff
-  );
-
-  d.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-  return d;
-}
-
-
-function addDays(
-  date,
-  amount
-) {
-
-  const d =
-    new Date(date);
-
-  d.setDate(
-    d.getDate() + amount
-  );
-
-  return d;
-}
-
-
-/* =========================
-   AFFICHAGE
-   ========================= */
-
-function render() {
-
-  const grid =
-    document.getElementById(
-      "grid"
-    );
-
-  if (!grid) {
+async function doFlush() {
+  const ops = Object.assign({}, pending);
+  if (!Object.keys(ops).length) return;
+  if (!token()) {
+    setStatus("Token manquant : modification gardée sur cet appareil");
+    openConfig();
     return;
   }
-
-  grid.innerHTML = "";
-
-
-  /*
-    Jours
-  */
-
-  DAYS.forEach(
-    day => {
-
-      const label =
-        document.createElement(
-          "div"
-        );
-
-      label.className =
-        "day-label";
-
-      label.textContent =
-        day;
-
-      grid.appendChild(
-        label
-      );
-
-    }
-  );
-
-
-  const today =
-    new Date();
-
-  const todayKey =
-    dateKey(today);
-
-  const currentMonday =
-    mondayOfWeek(today);
-
-
-  /*
-    10 dernières semaines
-  */
-
-  for (
-    let week = 9;
-    week >= 0;
-    week--
-  ) {
-
-    const monday =
-      addDays(
-        currentMonday,
-        -week * 7
-      );
-
-
-    for (
-      let day = 0;
-      day < 7;
-      day++
-    ) {
-
-      const date =
-        addDays(
-          monday,
-          day
-        );
-
-      const key =
-        dateKey(date);
-
-
-      const square =
-        document.createElement(
-          "div"
-        );
-
-      square.className =
-        "square";
-
-      square.textContent =
-        "■";
-
-
-      if (data[key]) {
-
-        square.classList.add(
-          "done"
-        );
-
-      }
-
-
-      if (
-        key === todayKey
-      ) {
-
-        square.classList.add(
-          "today"
-        );
-
-      }
-
-
-      square.addEventListener(
-        "click",
-        () => {
-
-          toggleDay(key);
-
-        }
-      );
-
-
-      grid.appendChild(
-        square
-      );
-
-    }
-
-  }
-
-
-  updateButton();
-}
-
-
-/* =========================
-   CHARGEMENT DATA.JSON
-   ========================= */
-
-async function loadData() {
-
-  try {
-
-    const response =
-      await fetch(
-        DATA_URL +
-        "?v=" +
-        Date.now(),
-        {
-          cache: "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const remoteData =
-      await response.json();
-
-
-    data =
-      remoteData || {};
-
-
-    render();
-
-
-    setStatus("");
-
-  } catch (error) {
-
-    console.error(
-      "Erreur data.json :",
-      error
-    );
-
-
-    /*
-      La grille reste visible
-      même si GitHub est indisponible.
-    */
-
-    render();
-
-
-    setStatus(
-      "Données GitHub indisponibles"
-    );
-
-  }
-}
-
-
-/* =========================
-   SYNCHRONISATION GITHUB
-   ========================= */
-
-async function updateGitHub(
-  date,
-  value
-) {
-
-  const token =
-    getToken();
-
-
-  if (!token) {
-
-    setStatus(
-      "Token GitHub manquant"
-    );
-
-    /*
-      Ouvre automatiquement
-      la configuration.
-    */
-
-    document
-      .getElementById(
-        "config"
-      )
-      .classList.add(
-        "visible"
-      );
-
-    return false;
-  }
-
-
-  setStatus(
-    "Synchronisation…"
-  );
-
-
-  const url =
-    "https://api.github.com/repos/" +
-    GITHUB_OWNER +
-    "/" +
-    GITHUB_REPO +
-    "/actions/workflows/" +
-    GITHUB_WORKFLOW +
-    "/dispatches";
-
-
-  try {
-
-    const response =
-      await fetch(
-        url,
-        {
-
-          method: "POST",
-
-          headers: {
-
-            "Accept":
-              "application/vnd.github+json",
-
-            "Authorization":
-              "Bearer " +
-              token,
-
-            "X-GitHub-Api-Version":
-              "2022-11-28",
-
-            "Content-Type":
-              "application/json"
-
-          },
-
-          body:
-            JSON.stringify({
-
-              ref:
-                GITHUB_BRANCH,
-
-              inputs: {
-
-                date:
-                  date,
-
-                value:
-                  String(value)
-
-              }
-
-            })
-
-        }
-      );
-
-
-    /*
-      204 = workflow accepté
-    */
-
-    if (
-  response.status === 204
-) {
-
-  setStatus(
-    "✓ Synchronisé"
-  );
-
-  setTimeout(() => {
-    setStatus("");
-  }, 3000);
-
-  return true;
-}
-
-
-    /*
-      Token incorrect
-    */
-
-    if (
-      response.status === 401 ||
-      response.status === 403
-    ) {
-
-      localStorage.removeItem(
-        TOKEN_KEY
-      );
-
-      setStatus(
-        "Token GitHub invalide"
-      );
-
-      document
-        .getElementById(
-          "config"
-        )
-        .classList.add(
-          "visible"
-        );
-
-      return false;
-    }
-
-
-    const errorText =
-      await response.text();
-
-
-    console.error(
-      "GitHub :",
-      response.status,
-      errorText
-    );
-
-
-    setStatus(
-      "Erreur GitHub (" +
-      response.status +
-      ")"
-    );
-
-
-    return false;
-
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-
-    setStatus(
-      "Erreur de connexion"
-    );
-
-
-    return false;
-  }
-}
-
-
-/* =========================
-   MODIFICATION D'UN JOUR
-   ========================= */
-
-async function toggleDay(key) {
-
-  const oldValue =
-    Boolean(
-      data[key]
-    );
-
-  const newValue =
-    !oldValue;
-
-
-  /*
-    Changement visuel
-    immédiat.
-  */
-
-  data[key] =
-    newValue;
-
-  render();
-
-
-  /*
-    Synchronisation
-  */
-
-  const success =
-    await updateGitHub(
-      key,
-      newValue
-    );
-
-
-  /*
-    Annule si GitHub refuse.
-  */
-
-  if (!success) {
-
-    data[key] =
-      oldValue;
-
-    render();
-
-  }
-}
-
-
-/* =========================
-   BOUTON FAIT
-   ========================= */
-
-function updateButton() {
-
-  const button =
-    document.getElementById(
-      "validate"
-    );
-
-  const todayKey =
-    dateKey(
-      new Date()
-    );
-
-
-  button.textContent =
-    "✓ FAIT";
-
-
-  button.classList.toggle(
-    "done",
-    Boolean(
-      data[todayKey]
-    )
-  );
-}
-
-
-document
-  .getElementById(
-    "validate"
-  )
-  .addEventListener(
-    "click",
-    async () => {
-
-      const todayKey =
-        dateKey(
-          new Date()
-        );
-
-
-      /*
-        Déjà fait :
-        on ne fait rien.
-      */
-
-      if (
-        data[todayKey]
-      ) {
-
-        return;
-      }
-
-
-      data[todayKey] =
-        true;
-
-
-      render();
-
-
-      const success =
-        await updateGitHub(
-          todayKey,
-          true
-        );
-
-
-      if (!success) {
-
-        delete data[todayKey];
-
+  setStatus("Synchronisation…");
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const remote = await fetchRemote();
+      const next = Object.assign({}, remote.obj);
+      Object.keys(ops).forEach(k => { if (ops[k]) next[k] = true; else delete next[k]; });
+      const body = {
+        message: "Journal de lecture",
+        content: b64enc(JSON.stringify(next, null, 1)),
+        branch: BRANCH
+      };
+      if (remote.sha) body.sha = remote.sha;
+      const r = await fetch(API, {
+        method: "PUT",
+        headers: Object.assign({ "Content-Type": "application/json" }, headers()),
+        body: JSON.stringify(body)
+      });
+      if (r.ok) {
+        Object.keys(ops).forEach(k => { if (pending[k] === ops[k]) delete pending[k]; });
+        data = withPending(next);
+        persist();
         render();
-
-      }
-
-    }
-  );
-
-
-/* =========================
-   CONFIGURATION
-   ========================= */
-
-document
-  .getElementById(
-    "settings"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      const config =
-        document.getElementById(
-          "config"
-        );
-
-      config.classList.toggle(
-        "visible"
-      );
-
-
-      const token =
-        getToken();
-
-
-      if (token) {
-
-        document
-          .getElementById(
-            "tokenInput"
-          )
-          .value =
-            token;
-
-      }
-
-    }
-  );
-
-
-/* =========================
-   ENREGISTRER TOKEN
-   ========================= */
-
-document
-  .getElementById(
-    "saveToken"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      const input =
-        document.getElementById(
-          "tokenInput"
-        );
-
-      const token =
-        input.value.trim();
-
-
-      if (!token) {
-
-        setStatus(
-          "Token vide"
-        );
-
+        setStatus("✓ Enregistré sur GitHub", 2500);
         return;
       }
-
-
-      localStorage.setItem(
-        TOKEN_KEY,
-        token
-      );
-
-
-      setStatus(
-        "✓ Token enregistré"
-      );
-
-
-      document
-        .getElementById(
-          "config"
-        )
-        .classList.remove(
-          "visible"
-        );
-
+      if (r.status === 409 || r.status === 422) continue;
+      if (r.status === 401) {
+        dropStore(TOKEN_KEY);
+        setStatus("Token invalide");
+        openConfig();
+        return;
+      }
+      if (r.status === 403 || r.status === 404) {
+        setStatus("Accès refusé (" + r.status + ") : vérifie les droits du token");
+        return;
+      }
+      setStatus("Erreur GitHub (" + r.status + ")");
+      return;
+    } catch (e) {
+      setStatus("Hors ligne : modification en attente");
+      return;
     }
-  );
+  }
+  setStatus("Conflit : modification en attente");
+}
+function flush() { queue = queue.then(doFlush).catch(() => {}); return queue; }
 
+function render() {
+  const grid = $("grid");
+  grid.innerHTML = "";
+  DAYS.forEach(l => {
+    const el = document.createElement("div");
+    el.className = "day-label";
+    el.textContent = l;
+    grid.appendChild(el);
+  });
+  const todayKey = dateKey(new Date());
+  const start = addDays(monday(new Date()), -63);
+  for (let i = 0; i < 70; i++) {
+    const key = dateKey(addDays(start, i));
+    const sq = document.createElement("div");
+    sq.className = "square" + (data[key] ? " done" : "") + (key === todayKey ? " today" : "");
+    sq.textContent = "■";
+    sq.addEventListener("click", () => setDay(key, !data[key]));
+    grid.appendChild(sq);
+  }
+  $("validate").classList.toggle("done", Boolean(data[todayKey]));
+}
+function setDay(key, value) {
+  if (value) data[key] = true; else delete data[key];
+  pending[key] = value;
+  persist();
+  render();
+  flush();
+}
 
-/* =========================
-   SUPPRIMER TOKEN
-   ========================= */
+$("validate").addEventListener("click", () => {
+  const key = dateKey(new Date());
+  if (!data[key]) setDay(key, true);
+});
+$("settings").addEventListener("click", () => {
+  $("config").classList.toggle("visible");
+  if (token()) $("tokenInput").value = token();
+});
+$("saveToken").addEventListener("click", () => {
+  const t = $("tokenInput").value.trim();
+  if (!t) { setStatus("Token vide"); return; }
+  store(TOKEN_KEY, t);
+  $("config").classList.remove("visible");
+  setStatus("✓ Token enregistré", 2000);
+  sync().then(flush);
+});
+$("removeToken").addEventListener("click", () => {
+  dropStore(TOKEN_KEY);
+  $("tokenInput").value = "";
+  setStatus("Token supprimé", 2000);
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") sync().then(flush);
+});
 
-document
-  .getElementById(
-    "removeToken"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      localStorage.removeItem(
-        TOKEN_KEY
-      );
-
-
-      document
-        .getElementById(
-          "tokenInput"
-        )
-        .value =
-          "";
-
-
-      setStatus(
-        "Token supprimé"
-      );
-
-    }
-  );
-
-
-/* =========================
-   INITIALISATION
-   ========================= */
-
-/*
-  On dessine d'abord
-  les carrés.
-*/
-
+try { data = clean(JSON.parse(fetchStore(CACHE_KEY) || "{}")); } catch (e) { data = {}; }
+try { pending = JSON.parse(fetchStore(PENDING_KEY) || "{}") || {}; } catch (e) { pending = {}; }
 render();
-
-
-/*
-  Puis on récupère
-  les données GitHub.
-*/
-
-loadData();
-
+sync().then(flush);
 </script>
-
 </body>
 </html>
